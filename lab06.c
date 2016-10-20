@@ -3,14 +3,14 @@
 #include<sys/socket.h>
 #include<arpa/inet.h> //inet_addr
 #include<unistd.h>    //write
-#include<time.h>
+
 int main(int argc , char *argv[])
 {
 int socket_desc , new_socket , c;
 struct sockaddr_in server , client;
-char *message;
-char buff[100];
-time_t ticks;
+char *message,client_message[2000];
+int read_size;
+
 //Create socket
 socket_desc = socket(AF_INET , SOCK_STREAM , 0);
 if (socket_desc == -1)
@@ -41,10 +41,20 @@ return 1;
 }
 puts("Connection accepted");
 //Reply to the client
-ticks=time(NULL);
-snprintf(buff,sizeof(buff),"%.24s\r\n",ctime(&ticks));
-write(new_socket , buff , strlen(buff));
-close(new_socket);
+while((read_size=recv(new_socket,client_message,2000,0))>0)
+{
+ write(new_socket,client_message,strlen(client_message));
+}
+if(read_size==0)
+{
+puts("Client disconnected");
+fflush(stdout);
+}
+else if(read_size==-1)
+{
+perror("recv failed");
+}
+free(socket_desc);
 return 0;
 }
 ////////////////////////////////////////////////////////////////////
